@@ -1,6 +1,7 @@
 package storm.crawler.function;
 
 import backtype.storm.tuple.Values;
+import org.json.simple.JSONObject;
 import storm.trident.operation.BaseFunction;
 import storm.trident.operation.TridentCollector;
 import storm.trident.tuple.TridentTuple;
@@ -12,9 +13,9 @@ import storm.trident.tuple.TridentTuple;
 public class PrepareCrawledPageDocument extends BaseFunction {
     @Override
     public void execute(TridentTuple tridentTuple, TridentCollector tridentCollector) {
-        String url = tridentTuple.getString(0);
-        String content_html = tridentTuple.getString(1);
-        String title = tridentTuple.getString(2);
+        String url = JSONObject.escape(tridentTuple.getString(0));
+        String content_html = JSONObject.escape(tridentTuple.getString(1));
+        String title = JSONObject.escape(tridentTuple.getString(2));
 
 
         String source = "{\"url\":\""+url+"\", \"content\":\""+content_html+"\", \"title\":\""+title+"\"}";

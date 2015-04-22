@@ -7,9 +7,9 @@ else
     return
 fi
 
-wget https://github.com/apache/storm/archive/v0.9.4.tar.gz
-tar -xzf v0.9.4.tar.gz
-rm v0.9.4.tar.gz
+wget http://apache.mirrors.pair.com/storm/apache-storm-0.9.4/apache-storm-0.9.4.tar.gz
+tar -xzf apache-storm-0.9.4.tar.gz
+rm apache-storm-0.9.4.tar.gz
 #cd storm-0.9.4
 
 cd $start_dir

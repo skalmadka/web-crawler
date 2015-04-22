@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Implementation-Title: web-crawler
+Implementation-Version: 0.9.4
+Implementation-Vendor-Id: edu.skalmad.ncsu
+Build-Jdk: 1.8.0_25
+Built-By: sunil
+Specification-Title: web-crawler
+Created-By: IntelliJ IDEA
+Specification-Version: 0.9.4
+

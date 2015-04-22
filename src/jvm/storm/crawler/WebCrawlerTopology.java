@@ -7,9 +7,12 @@ import backtype.storm.StormSubmitter;
 import backtype.storm.generated.StormTopology;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.tuple.Fields;
+import backtype.storm.utils.Utils;
 import com.github.fhuss.storm.elasticsearch.ClientFactory;
 import com.github.fhuss.storm.elasticsearch.state.ESIndexState;
 import com.github.fhuss.storm.elasticsearch.state.ESIndexUpdater;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 import storm.crawler.filter.KafkaProducerFilter;
 import storm.crawler.filter.PrintFilter;
 import storm.crawler.filter.URLFilter;
@@ -26,11 +29,9 @@ import storm.kafka.trident.TridentKafkaConfig;
 import storm.trident.TridentTopology;
 import storm.trident.state.StateFactory;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
 import java.lang.System;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -82,26 +83,33 @@ public class WebCrawlerTopology {
     public static void main(String[] args) throws Exception {
 
         if(args.length != 1){
-            System.err.println("[ERROR] Properties File Required");
+            System.err.println("[ERROR] Configuration File Required");
         }
         Config conf = new Config();
 
-        Properties prop = new Properties();
-        try{
-            Reader propReader = new FileReader(new File(args[0]));
-            prop.load(propReader);
-        } catch(IOException e){
-            System.err.println("[ERROR] Unable to read Properties File "+args[0]);
-            e.printStackTrace();
-            return;
-        }
-
-        for(Map.Entry property : prop.entrySet()){
-            conf.put((String)property.getKey(), property.getValue());
-        }
+        Map topologyConfig = readConfigFile(args[0]);
+        conf.putAll(topologyConfig);
 
         //LocalCluster cluster = new LocalCluster();
         //cluster.submitTopology("web_crawler", conf, buildTopology(conf));
         StormSubmitter.submitTopologyWithProgressBar("web_crawler", conf, buildTopology(conf));
+    }
+
+    private static Map readConfigFile(String filename) throws IOException {
+        Map ret;
+        Yaml yaml = new Yaml(new SafeConstructor());
+        InputStream inputStream = new FileInputStream(new File(filename));
+
+        try {
+            ret = (Map)yaml.load(inputStream);
+        } finally {
+            inputStream.close();
+        }
+
+        if(ret == null) {
+            ret = new HashMap();
+        }
+
+        return new HashMap(ret);
     }
 }

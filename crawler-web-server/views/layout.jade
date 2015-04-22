@@ -1,7 +1,16 @@
 doctype html
 html
   head
-    title= title
+    title Web Crawler UI
+    link(rel='stylesheet',href='/bootstrap/css/bootstrap.min.css')
+    link(rel='stylesheet',href='/bootstrap/css/bootstrap-theme.min.css')
+    link(rel='stylesheet',href='/bootstrap-table-master/bootstrap-table.min.css')
     link(rel='stylesheet', href='/stylesheets/style.css')
+    block styles
   body
+    script(src='/javascripts/jquery.min.js')
+    script(src='/bootstrap/js/bootstrap.min.js')
+    script(src='/bootstrap-table-master/bootstrap-table.min.js')
+    script(src='/bootstrap-table-master/locale/bootstrap-table-en-US.min.js')
+    block scripts
     block content
