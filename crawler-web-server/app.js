@@ -11,17 +11,16 @@ var routes = require('./routes/index');
 var users = require('./users');
 
 //Configuration
-var PropertiesReader = require('properties-reader');
-var properties = PropertiesReader(process.env.CRAWLER_WEB_PROPERTIES || '../config/default.properties');
+var crawl_config = require('./config');
 
 //Kafka
 var kafka = require('kafka-node'),
     Producer = kafka.Producer,
-    client = new kafka.Client(properties.get('kafka.consumer.host.name') + ':' + properties.get('kafka.consumer.host.port')),
+    client = new kafka.Client(crawl_config.kafka_consumer_host_name + ':' + crawl_config.kafka_consumer_host_port),
     producer = new Producer(client);
 
-var topic_name_crawler = properties.get('kafka.topic.crawl.name');
-var crawl_depth =  properties.get('crawl.depth');
+var topic_name_crawler = crawl_config.kafka_topic_crawl_name;
+var crawl_depth =  crawl_config.crawl_depth;
 
 producer.on('ready', function () {
   console.log('Kafka Producer Ready');
@@ -37,7 +36,7 @@ var app = express();
  * Get port from environment and store in Express.
  */
 //var port = normalizePort(process.env.PORT || '3000');
-var port =  properties.get('web.server.port');
+var port =  crawl_config.web_server_port;
 app.set('port', port);
 
 // view engine setup
