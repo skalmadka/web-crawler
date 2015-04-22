@@ -1,3 +1,5 @@
+start_dir=$(pwd)
+
 if [ $# -gt 0 ]; then
     cd $1
 else
@@ -21,3 +23,5 @@ if type -p nodejs; then
         echo "[Error] Unable to install nodejs."
     fi
 fi
+
+cd $start_dir

@@ -1,3 +1,5 @@
+start_dir=$(pwd)
+
 if [ $# -gt 0 ]; then
     cd $1
 else
@@ -33,3 +35,5 @@ if [ -z "$_java" ]; then
         cd jdk1.8.0_40
         export JAVA_HOME=$(pwd) 
 fi
+
+cd $start_dir

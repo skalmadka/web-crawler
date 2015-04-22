@@ -1,3 +1,5 @@
+start_dir=$(pwd)
+
 if [ $# -gt 0 ]; then
     cd $1
 else
@@ -7,4 +9,7 @@ fi
 
 wget https://github.com/apache/storm/archive/v0.9.4.tar.gz
 tar -xzf v0.9.4.tar.gz
-cd storm-0.9.4
+rm v0.9.4.tar.gz
+#cd storm-0.9.4
+
+cd $start_dir

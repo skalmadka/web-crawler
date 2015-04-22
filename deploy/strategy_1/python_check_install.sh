@@ -1,3 +1,5 @@
+start_dir=$(pwd)
+
 if [ $# -gt 0 ]; then
     cd $1
 else
@@ -31,3 +33,5 @@ if [ -z "$_python" ]; then
         echo "[Error] Unable to install latest version of python."
     fi
 fi
+
+cd $start_dir

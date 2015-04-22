@@ -1,3 +1,5 @@
+start_dir=$(pwd)
+
 if [ $# -gt 0 ]; then
     cd $1
 else
@@ -8,5 +10,5 @@ fi
 wget https://download.elastic.co/elasticsearch/elasticsearch/elasticsearch-1.5.1.tar.gz
 tar -xzf elasticsearch-1.5.1.tar.gz
 rm elasticsearch-1.5.1.tar.gz
-cd elasticsearch-1.5.1
-bin/elasticsearch
+
+cd $start_dir
