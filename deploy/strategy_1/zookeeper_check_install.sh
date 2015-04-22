@@ -1,4 +1,4 @@
-if [ $# -gt 0 ]
+if [ $# -gt 0 ]; then
     cd $1
 else
     echo "[ERROR] Usage: $0 <Working directory>"
