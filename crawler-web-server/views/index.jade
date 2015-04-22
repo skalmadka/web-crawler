@@ -1,5 +1,14 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+  h1(align='left') Crawler Feed
+  form(align="center",method='POST', action='/api/url_feeder')
+    .form-group.col-md-5
+      input.form-control(type='text', name='uri', placeholder='URL')
+      br
+      input.form-control(type='text', name='crawl_depth', placeholder='Crawl Depth')
+      br
+      input.form-control(type='text', name='userid', placeholder='Unity ID')
+      br
+      button.btn.btn-primary.btn-sm(type='submit', name='submit', value='Search') Feed It!
+

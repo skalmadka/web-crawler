@@ -56,7 +56,7 @@ app.use('/', routes);
 //API Routes
 app.use('/api',function(req, res, next){
   console.log('Authenticating API Request...');
-  var userid = req.query['userid'];
+  var userid = req.body.userid;
 
   // userid isn't present
   if (!userid) return next(error(400, 'api userid required'));
@@ -65,7 +65,6 @@ app.use('/api',function(req, res, next){
   if (!~users[userid]) return next(error(401, 'invalid user'));
 
   // all good, store req.key for route access
-  req.userid = userid;
   next();
 });
 
@@ -74,13 +73,39 @@ app.post('/api/event', function(req, res, next){
   //Get event from post data
   //Event : {type: file/url, uri:fileName/url, summary:<text>}
   var event = new Object();
-  event.userid = req.userid;
+  event.userid = req.body.userid;
   event.type = req.body.type;
   event.uri = req.body.uri;
   event.summary = req.body.summary;
   event.timestamp = req.body.timestamp;
 
   var payload_crawler = [{topic:topic_name_crawler , messages:event.uri+' '+crawl_depth}];
+
+  console.log('Sending to kafka...');
+  //Send to Kafka
+  if(producer) {
+    producer.send(payload_crawler, function (err, data) {
+      if (err) {
+        res.send(500, err);
+      } else {
+        res.send(200, 'Message is queued.');
+      }
+    });
+  } else {
+    res.send(500, 'Producer is not initialized');
+  }
+});
+
+
+//URL Feeder
+app.post('/api/url_feeder', function(req, res, next){
+  console.log('Looking for POST data...');
+  var event = new Object();
+  event.userid = req.body.userid;
+  event.uri = req.body.uri;
+  event.crawl_depth = req.body.crawl_depth;
+
+  var payload_crawler = [{topic:topic_name_crawler , messages:event.uri+' '+event.crawl_depth}];
 
   console.log('Sending to kafka...');
   //Send to Kafka
