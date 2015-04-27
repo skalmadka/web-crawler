@@ -75,7 +75,8 @@ public class WebCrawlerTopology {
                 .each(new Fields("href", "depth"), new KafkaProducerFilter())
                 //Insert to Elasticsearch
                 .each(new Fields("url", "content_html", "title", "href"), new PrepareCrawledPageDocument(), new Fields("index", "type", "id", "source"))
-                .partitionPersist(esStateFactory, new Fields("index", "type", "id", "source"), new ESIndexUpdater<String>(new ESTridentTupleMapper()), new Fields());
+                .partitionPersist(esStateFactory, new Fields("index", "type", "id", "source"), new ESIndexUpdater<String>(new ESTridentTupleMapper()), new Fields())
+                ;
 
         return topology.build();
     }
