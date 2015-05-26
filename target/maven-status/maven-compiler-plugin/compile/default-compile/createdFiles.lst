@@ -11,5 +11,6 @@ storm/crawler/filter/bloomfilter/RedisBloomFilter.class
 storm/crawler/filter/URLFilter.class
 storm/crawler/WebCrawlerTopology.class
 storm/crawler/filter/KafkaProducerFilter.class
+storm/crawler/function/BingAutoSuggest.class
 storm/crawler/CrawlerConfig.class
 storm/crawler/function/GetAdFreeWebPage.class

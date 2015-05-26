@@ -1,0 +1,32 @@
+nimbus.host: "localhost"
+
+#Topology
+topology.workers: 6
+topology.debug: false
+topology.max.spout.pending: 5
+topology.message.timeout.secs: 90
+topology.trident.batch.emit.interval.millis: 500
+
+#Elasticsearch
+elasticsearch.cluster.name: "elasticsearch"
+elasticsearch.host.name: "localhost"
+elasticsearch.host.port: 9300
+elasticsearch.index.name: "crawl_index"
+
+#Kafka URL Consumer
+kafka.topic.crawl.name: "urltopic"
+kafka.consumer.host.name: "localhost"
+kafka.consumer.host.port: 2181
+
+#Kafka URL Producer
+kafka.producer.host.name: "localhost"
+kafka.producer.host.port: 9092
+
+#Redis
+redis.host.name: "localhost"
+redis.host.port: 6379
+
+#Bloom Filter
+bloomfilter.name: "Crawler_URL_BloomFilter"
+bloomfilter.expected.count: 1000000
+bloomfilter.falsePositive: 0.01

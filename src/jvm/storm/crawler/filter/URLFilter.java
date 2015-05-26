@@ -30,7 +30,7 @@ public class URLFilter  extends BaseFilter {
         String url = tridentTuple.getString(0);
 
         if (bloomFilter.exists(url)) {
-            System.out.println("----- BloomFilter reject (URL exists):" + url);
+            //System.out.println("----- BloomFilter reject (URL exists):" + url);
             return false;
         }
         bloomFilter.add(url);

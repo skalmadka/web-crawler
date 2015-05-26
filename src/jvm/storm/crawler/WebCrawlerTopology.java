@@ -11,13 +11,14 @@ import backtype.storm.utils.Utils;
 import com.github.fhuss.storm.elasticsearch.ClientFactory;
 import com.github.fhuss.storm.elasticsearch.state.ESIndexState;
 import com.github.fhuss.storm.elasticsearch.state.ESIndexUpdater;
+import com.github.fhuss.storm.elasticsearch.state.QuerySearchIndexQuery;
+import com.sun.tools.internal.jxc.ConfigReader;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import storm.crawler.filter.KafkaProducerFilter;
 import storm.crawler.filter.PrintFilter;
 import storm.crawler.filter.URLFilter;
-import storm.crawler.function.GetAdFreeWebPage;
-import storm.crawler.function.PrepareCrawledPageDocument;
+import storm.crawler.function.*;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import storm.crawler.state.ESTridentTupleMapper;
@@ -26,6 +27,7 @@ import storm.kafka.StringScheme;
 import storm.kafka.ZkHosts;
 import storm.kafka.trident.OpaqueTridentKafkaSpout;
 import storm.kafka.trident.TridentKafkaConfig;
+import storm.trident.TridentState;
 import storm.trident.TridentTopology;
 import storm.trident.state.StateFactory;
 
@@ -40,7 +42,7 @@ import java.util.Properties;
  */
 
 public class WebCrawlerTopology {
-    public static StormTopology buildTopology(Config conf) {
+    public static StormTopology buildTopology(Config conf, LocalDRPC localDrpc) {
         TridentTopology topology = new TridentTopology();
 
         //Kafka Spout
@@ -55,45 +57,57 @@ public class WebCrawlerTopology {
                 .put("storm.elasticsearch.hosts", conf.get(CrawlerConfig.ELASTICSEARCH_HOST_NAME) + ":" + conf.get(CrawlerConfig.ELASTICSEARCH_HOST_PORT))
                 .build();
         StateFactory esStateFactory = new ESIndexState.Factory<String>(new ClientFactory.NodeClient(esSettings.getAsMap()), String.class);
+        TridentState esStaticState = topology.newStaticState(esStateFactory);
 
-/*        //Kafka State
-        TridentKafkaStateFactory kafkaStateFactory = new TridentKafkaStateFactory()
-                .withKafkaTopicSelector(new DefaultTopicSelector("crawl"))
-                .withTridentTupleToKafkaMapper(new FieldNameBasedTupleToKafkaMapper("refURL", "refDepth"));
-
-        TridentState b1 =  s.each(new Fields("href", "depth"), new PrepareHrefKafka(), new Fields("refURL", "refDepth"))
-        .partitionPersist(kafkaStateFactory, new Fields("refURL", "refDepth"), new TridentKafkaUpdaterEmitTuple(), new Fields());
-*/
         //Topology
         topology.newStream("crawlKafkaSpout", spout).parallelismHint(5)
-                .each(new Fields("str"), new PrintFilter())
-                //Bloom Filter
-                .each(new Fields("str"), new URLFilter())
+                 //Splits url and depth information on receiving from Kafka
+                .each(new Fields("str"), new SplitKafkaInput(), new Fields("url", "depth"))
+                //Bloom Filter. Filters already crawled URLs
+                .each(new Fields("url"), new URLFilter())
                 //Download and Parse Webpage
-                .each(new Fields("str"), new GetAdFreeWebPage(), new Fields("url", "content_html", "title", "href", "depth"))
-                //Kafka Send: Recursive Href
-                .each(new Fields("href", "depth"), new KafkaProducerFilter())
+                .each(new Fields("url"), new GetAdFreeWebPage(), new Fields("content_html", "title", "href"))//TODO Optimize
+                //Add Href URls to Kafka queue
+                .each(new Fields("href", "depth"), new KafkaProducerFilter())//TODO Replace with kafka persistent state.
                 //Insert to Elasticsearch
-                .each(new Fields("url", "content_html", "title", "href"), new PrepareCrawledPageDocument(), new Fields("index", "type", "id", "source"))
-                .partitionPersist(esStateFactory, new Fields("index", "type", "id", "source"), new ESIndexUpdater<String>(new ESTridentTupleMapper()), new Fields())
-                ;
+                .each(new Fields("url", "content_html", "title"), new PrepareForElasticSearch(), new Fields("index", "type", "id", "source"))
+                .partitionPersist(esStateFactory, new Fields("index", "type", "id", "source"), new ESIndexUpdater<String>(new ESTridentTupleMapper()))
+        ;
+
+        //DRPC
+        topology.newDRPCStream("search", localDrpc)
+                .each(new Fields("args"), new SplitDRPCArgs(), new Fields("query_input"))
+                .each(new Fields("query_input"), new BingAutoSuggest(0), new Fields("query_preProcessed"))//TODO return List of expanded query
+                .each(new Fields("query_preProcessed"), new PrepareSearchQuery(), new Fields("query", "indices", "types"))
+                .groupBy(new Fields("query", "indices", "types"))
+                .stateQuery(esStaticState, new Fields("query", "indices", "types"), new QuerySearchIndexQuery(), new Fields("results"))
+        ;
 
         return topology.build();
     }
 
     public static void main(String[] args) throws Exception {
 
-        if(args.length != 1){
+        if(args.length < 1){
             System.err.println("[ERROR] Configuration File Required");
         }
         Config conf = new Config();
 
-        Map topologyConfig = readConfigFile(args[0]);
-        conf.putAll(topologyConfig);
+        // Store all the configuration in the Storm conf object
+        conf.putAll(readConfigFile(args[0]));
 
-        //LocalCluster cluster = new LocalCluster();
-        //cluster.submitTopology("web_crawler", conf, buildTopology(conf));
-        StormSubmitter.submitTopologyWithProgressBar("web_crawler", conf, buildTopology(conf));
+        //Second arg should be local in order to run locally
+        if(args.length  < 2 || (args.length  == 2 && !args[1].equals("local"))) {
+            StormSubmitter.submitTopologyWithProgressBar("crawler_topology", conf, buildTopology(conf, null));
+        }
+        else {
+            LocalDRPC drpc = new LocalDRPC();
+            LocalCluster localcluster = new LocalCluster();
+            localcluster.submitTopology("crawler_topology",conf,buildTopology(conf, drpc));
+
+            String searchQuery = "elasticsearch";
+            System.out.println("---* Result (search): " + drpc.execute("search",  searchQuery));
+        }
     }
 
     private static Map readConfigFile(String filename) throws IOException {

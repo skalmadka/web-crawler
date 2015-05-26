@@ -16,16 +16,10 @@ import java.net.URL;
 public class GetAdFreeWebPage  extends BaseFunction {
     @Override
     public void execute(TridentTuple tridentTuple, TridentCollector tridentCollector) {
-        String str = tridentTuple.getString(0);
-        String[] strSplit = str.split(" ");
-
-        String url = strSplit[0];
-        int depth = 0;
-        if(strSplit.length > 1)
-            depth = Integer.parseInt(strSplit[1]);
+        String url = tridentTuple.getString(0);
 
         Readability readability = null;
-        Integer timeoutMillis = 4000;
+        Integer timeoutMillis = 2000;
 
         try {
             readability = new Readability(new URL(url), timeoutMillis);  // URL
@@ -39,7 +33,6 @@ public class GetAdFreeWebPage  extends BaseFunction {
         String webPageTitle = readability.title;
         String hrefString = readability.hrefString.toString();
 
-        System.out.println("GetAdFreeWebPage: hrefString: \""+ hrefString+"\"");
-        tridentCollector.emit(new Values(url, webPageString, webPageTitle, hrefString, Integer.toString(depth)));
+        tridentCollector.emit(new Values(webPageString, webPageTitle, hrefString));
     }
 }

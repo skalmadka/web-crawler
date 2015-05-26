@@ -17,6 +17,8 @@ public final class CrawlerConfig {
 
     public static final String ELASTICSEARCH_HOST_PORT = "elasticsearch.host.port";
 
+    public static final String ELASTICSEARCH_INDEX_NAME = "elasticsearch.index.name";
+
     public static final String KAFKA_TOPIC_NAME = "kafka.topic.crawl.name";
 
     public static final String KAFKA_CONSUMER_HOST_NAME = "kafka.consumer.host.name";
