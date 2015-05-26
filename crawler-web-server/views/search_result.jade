@@ -1,0 +1,31 @@
+extends layout
+block scripts
+   script(type='text/javascript').
+      $(function () {
+         $('#table').bootstrapTable({
+            data: !{JSON.stringify(searchResult)}
+         });
+      });
+   script(type='text/javascript').
+      function linkFormatter(value) {
+         return '<a href="' + value + '">' + value + '</a>';
+      }
+      function snippetFormatter(value) {
+         return '<div class="panel panel-primary"> <div class="panel-body" style="max-height:100px;overflow-y: scroll;">' + value + '</div> </div>';
+      }
+
+block content
+   h1 Search Results
+   a(href='/') Home
+   br
+   br
+   .panel.panel-primary
+      .panel-heading
+         h3.panel-title Search Result
+      .panel-body
+         table#table(data-pagination='true')
+            thead
+               tr
+                  th(data-field='title') Title
+                  th(data-field='url' data-formatter="linkFormatter") URL
+                  th(data-field='content' data-formatter="snippetFormatter") Content

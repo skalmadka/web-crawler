@@ -1,14 +1,19 @@
 extends layout
 
 block content
-  h1(align='left') Crawler Feed
-  form(align="center",method='POST', action='/api/url_feeder')
-    .form-group.col-md-5
-      input.form-control(type='text', name='uri', placeholder='URL')
-      br
-      input.form-control(type='text', name='crawl_depth', placeholder='Crawl Depth')
-      br
-      input.form-control(type='text', name='userid', placeholder='Unity ID')
-      br
-      button.btn.btn-primary.btn-sm(type='submit', name='submit', value='Search') Feed It!
+   ul.nav.nav-tabs
+      li.active(role='features')
+         a(href='/') Search
+      li(role='features')
+         a(href='/url_feeder') URL Feeder
+      li(role='features')
+         a(href='/voice_search') Voice Search
 
+   h1(align='left') Search
+   form(align="center",method='POST', action='/api/search')
+      .form-group.col-md-5
+         input.form-control(type='text', name='searchQuery', placeholder='Search Query')
+         br
+         input.form-control(type='text', name='userid', placeholder='Unity ID')
+         br
+         button.btn.btn-primary.btn-sm(type='submit', name='submit', value='Search') Search

@@ -15,6 +15,6 @@
     "serve-favicon": "~2.2.0",
 
     "kafka-node":"0.2.24",
-    "properties-reader": "0.0.10"
+    "node-drpc":"0.0.8"
   }
 }

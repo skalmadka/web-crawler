@@ -1,0 +1,74 @@
+extends layout
+
+block scripts
+   script(src='https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js')
+   script(type='text/javascript', src='https://static.twilio.com/libs/twiliojs/1.1/twilio.min.js')
+   script(src='/javascripts/webspeech.js')
+   script(type='text/javascript').
+      $(document).ready(function() {
+         var greet = new SpeechSynthesisUtterance("Hi, What would you like to search for?");
+         speechSynthesis.speak(greet);
+      });
+   script(type='text/javascript').
+      function linkFormatter(value) {
+         return '<a href="' + value + '">' + value + '</a>';
+      }
+      function snippetFormatter(value) {
+         return '<div class="panel panel-primary"> <div class="panel-body" style="max-height:100px;overflow-y: scroll;">' + value + '</div> </div>';
+      }
+
+block content
+   ul.nav.nav-tabs
+      li(role='features')
+         a(href='/') Search
+      li(role='features')
+         a(href='/url_feeder') URL Feeder
+      li.active(role='features')
+         a(href='/voice_search') Voice Search
+
+   .panel.panel-info
+      .panel-heading
+         h3.panel-title Voice Search
+      .panel-body
+         .well
+            p.current_response What would you like to search for?
+         form#form1.form-group(method='get')
+            input#input_field.form-control(name='q')
+         button(onclick='reco.toggleStartStop()', style='border: 0; background-color:transparent')
+            img#status_img.page-scroll.btn.btn-xl(src='/images/mic.gif', alt='Start')
+         #status
+         script.
+            var reco = new WebSpeechRecognition();
+            reco.statusText('status');
+            reco.statusImage('status_img');
+            reco.finalResults('input_field');
+            reco.onEnd = function() {
+               if (reco.final_transcript != '') {
+                  // input_field.form.submit();
+                  var input_value =  $('#input_field').val();
+                  $.ajax({
+                     type: "GET",
+                     url: "/speech_service?utterance="+ input_value
+                  }).then(function(data) {
+                     //alert("Submit Response");
+                     var u = new SpeechSynthesisUtterance("Found " + data.current_response + " result(s)");
+                     speechSynthesis.speak(u);
+                     $('.current_response').html("Found " + data.current_response + " result(s)");
+                     $('.search_results').html(JSON.stringify(data.search_results, null, 2));
+                     var table = $("#search_result_table").DataTable({
+                        "data":data.search_results,
+                        "destroy": true
+                     });
+                     table.draw();
+
+                  });
+                  return false;
+               }
+            };
+
+   h3 Search Results
+   br
+   .well
+      p.search_results
+   br
+   table#search_result_table
